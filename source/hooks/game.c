@@ -93,7 +93,7 @@ void ExitAndroidGame(int code) {
   so_unload();
   // die
   // exit(0); // doesn't actually exit?
-  extern void NORETURN __libnx_exit(int rc);
+  extern void NX_NORETURN __libnx_exit(int rc);
   __libnx_exit(0);
 }
 
