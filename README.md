@@ -1,79 +1,170 @@
-## Max Payne Mobile Nintendo Switch port
+# Bully NX
 
-This is a wrapper/port of the Android version of Max Payne Mobile. It loads the original game binary, patches it and runs it.
-It's basically as if we emulate a minimalist Android environment in which we natively run the original Android binary as is.
-This is probably not entirely stable yet, so expect issues.
+Nintendo Switch homebrew port/wrapper for the Android 64-bit release of **Bully: Anniversary Edition**.
 
-This is a port of the [PS Vita version](https://github.com/fgsfdsfgs/max_vita) adapted to work on the Switch with AArch64 `.so` files.
+This project does not reimplement the game. It loads the original Android native game library, patches the runtime, and runs it inside a minimal Switch-side compatibility layer.
 
-### How to install
+This is still a **work in progress** port. It boots and runs, but it is not finished yet and still contains temporary workarounds that need proper cleanup.
 
-This requires access to the following system calls:
-* `svcMapProcessCodeMemory` (0x77)
-* `svcUnmapProcessCodeMemory` (0x78)
-* `svcSetProcessMemoryPermission` (0x73)
+## Credits
 
-I actually have no idea what that entails except the fact that you have to be running a CFW. Good luck.
+- `fgsfds` and `Andy Nguyen` for the original wrapper/loader base used by these ports
+- `givethesourceplox` for the Bully AArch64 Switch port work in this repo
 
-You're going to need:
-* `.apk` file for version 1.7 (latest version at the time of writing) that includes `arm64-v8a` libraries;
-* `.obb` file for version 1.6 or 1.7 (usually located at `/sdcard/android/obb/com.rockstar.maxpayne/main.3.com.rockstar.maxpayne.obb`).
+## Important
 
-Both files [can be obtained](https://stackoverflow.com/questions/11012976/how-do-i-get-the-apk-of-an-installed-app-without-root-access) from your phone if you have a copy of the game installed.
-Both files can be opened or extracted with anything that can extract `.zip` files.
+You must use **officially obtained** game files from your own copy of:
 
-To install:
-1. Create a folder called `maxpayne` in the `switch` folder on your SD card.
-2. Extract **the contents of** the `assets` folder from your `.apk` to `/switch/maxpayne/`.
-3. Extract `lib/arm64-v8a/libMaxPayne.so` from your `.apk` to `/switch/maxpayne/`.
-4. Extract the contents of the `.obb` file into `/switch/maxpayne/`. You can skip all the `.msf` files except for `MaxPayneSoundsv2.msf` and any extra languages that you want.
-5. Extract the contents of the `.zip` file from the latest release into `/switch/maxpayne/`. Replace everything.
+- `Bully: Anniversary Edition`
+- Android version `v1.4.311`
+- with `arm64-v8a` libraries
 
-### Notes
+Do not distribute extracted APK contents with this project.
 
-This **will not work** in applet/album mode: even though `MEMORY_MB` can very well be lowered to 232MB in `config.h`, there's still 0MB left after the newlib heap is allocated.
-This can probably be fixed later. For now use a game override or NSP hbmenu.
+## Requirements
 
-The port has an extra config file, located at `/switch/maxpayne/config.txt`. It is created when you first run the game and allows you to tweak some internal settings.
-For more detailed descriptions of said settings check the [wiki article](https://github.com/fgsfdsfgs/max_nx/wiki/Config-variables).
+You need a Switch setup that can run homebrew and this port is intended to be launched through title override / full-memory homebrew, not applet mode.
 
-The game will show an error message if it detects that anything is wrong. Please read those and check the relevant parts of your setup.
+## Installation
 
-If the error says `Could not find symbol ...`, that likely means you have the wrong `.apk` or `.so` file. You need version 1.7, others **will not work**.
-Make sure also that you've extracted `libMaxPayne.so` from the `arm64-v8a` subfolder.
+Create this folder on your SD card:
 
-If the game crashes on startup, please post an issue with your last crash report attached.
-
-### How to build
-
-You're going to need devkitA64 and the following libraries:
-* `switch-mesa`
-* `switch-libdrm_nouveau`
-* `switch-sdl2`
-* `devkitpro-pkgbuild-helpers`
-* [openal-soft](https://github.com/fgsfdsfgs/openal-soft)
-
-After you've obtained all the dependencies and ensured devkitA64 is properly installed and the `DEVKITPRO` environment variable is set,
-build this repository using the commands:
-```
-git clone https://github.com/fgsfdsfgs/max_nx.git && cd max_nx
-source $DEVKITPRO/switchvars.sh
-make
+```txt
+sdmc:/switch/bully/
 ```
 
-### Credits
+From an officially obtained `Bully: Anniversary Edition` `v1.4.311` APK, extract:
 
-* TheOfficialFloW for the method and work on the PS Vita port;
-* Rinnegatamante, Bythos, frangarcj, CBPS for help with the PS Vita port;
-* Freakler for providing the icon;
-* Switchbrew for libnx.
+- `assets/`
+- `lib/arm64-v8a/libc++_shared.so`
+- `lib/arm64-v8a/libGame.so`
 
-### Legal
+Then place the files like this:
 
-This project has no direct affiliation with Take-Two Interactive Software, Inc., Rockstar Games, Inc. or Remedy Entertainment Oyj and/or the "Max Payne" brand. "Max Payne" is a Take-Two Interactive Software, Inc. brand. All Rights Reserved.
+```txt
+sdmc:/switch/bully/
+- bully_nx.nro
+- libc++_shared.so
+- libBully.so
+- config.txt
+- assets/
+  - data_0.zip
+  - data_1.zip
+  - data_2.zip
+  - data_3.zip
+  - data_4.zip
+  - ...
+```
 
-No assets or program code from the original game or its Android port are included in this project. We do not condone piracy in any way, shape or form and encourage users to legally own the original game.
+Notes:
 
-The video game "Max Payne" is copyright © 2001 Remedy Entertainment Oyj and/or Take-Two Interactive Software, Inc. The Android version, "Max Payne Mobile", is copyright © 2012 Rockstar Games, Inc. and/or Take-Two Interactive Software, Inc. "Max Payne" and "Max Payne Mobile" are trademarks of their respective owners. All Rights Reserved.
+- `libGame.so` from the APK must be copied as `libBully.so`
+- the port checks for `assets/data_0.zip` on startup
+- `savegames/` is created automatically on first run
+- `config.txt` is created automatically if missing
 
-Unless specified otherwise, the source code provided in this repository is licenced under the MIT License. Please see the accompanying LICENSE file.
+## Quick Install Steps
+
+1. Copy the built `.nro` into `sdmc:/switch/bully/`
+2. Copy `libc++_shared.so` into `sdmc:/switch/bully/`
+3. Copy `libGame.so` into `sdmc:/switch/bully/` and rename it to `libBully.so`
+4. Copy the full `assets` folder into `sdmc:/switch/bully/assets/`
+5. Launch through title override / hbmenu with full memory access
+
+## Configuration
+
+The port reads:
+
+```txt
+sdmc:/switch/bully/config.txt
+```
+
+If it does not exist, the port creates one with default values on first boot.
+
+Examples:
+
+```txt
+screen_width 960
+screen_height 540
+clarity 0
+shadows 1
+trilinear_filter 0
+timing_workaround_ms 0
+```
+
+`clarity` maps to the native in-game display effects level:
+
+- `0` = Low
+- `1` = Medium
+- `2` = High
+
+`shadows` controls the native startup shadow setting:
+
+- `0` = Off
+- `1` = Low
+- `2` = Medium
+- `3` = High
+
+`timing_workaround_ms` controls the current compatibility timing workaround used by the port on some consoles.
+
+- `0` = automatic mode
+- `2`, `3`, `4`, `5` = fixed manual override
+
+Automatic mode starts with no added delay and raises the workaround only if startup/render progress appears to stall on that console. If you still want to force a fixed value manually, try `2`, `3`, `4`, or `5`.
+
+Old wrapper-only keys from earlier builds were removed from the generated config because they were not actually wired in this 64-bit port.
+
+## Building
+
+You need:
+
+- `devkitA64`
+- `libnx`
+- `SDL2`
+- `OpenAL`
+- `minizip`
+- `zlib`
+- `zstd`
+- Switch Mesa / Nouveau userspace libraries
+
+Standard build:
+
+```sh
+docker run --rm -it \
+  -v "$(PWD):/project" \
+  --workdir "/project/bully_nx" \
+  devkitpro/devkita64 \
+  sh -lc 'make clean && make -j$(nproc)'
+```
+
+## Troubleshooting
+
+If the port fails very early:
+
+- make sure the APK is really `v1.4.311`
+- make sure the libraries came from `lib/arm64-v8a/`
+- make sure `libGame.so` was renamed to `libBully.so`
+- make sure `assets/data_0.zip` exists in the game folder
+- make sure you are not launching in applet mode
+
+If the game reports missing symbols or immediately fails to load:
+
+- verify you extracted the correct 64-bit Android files
+- verify `libc++_shared.so` is present beside the `.nro`
+
+## Current Status
+
+Known issues / unfinished parts:
+
+- this is still a work-in-progress port
+- there are still some temporary hacks/workarounds in the runtime that should be replaced with cleaner fixes
+- more cleanup and stabilization is still needed overall
+- Xbox layout on button tips
+
+## Legal
+
+This project is not affiliated with Rockstar Games or Take-Two.
+
+The port should be distributed **without** proprietary game binaries or assets. Users must provide their own legally obtained copy of the Android game files.
+
+Unless stated otherwise, the source code in this repository is released under the MIT License. See [LICENSE](https://github.com/givethesourceplox/bully_nx/blob/master/LICENSE).

@@ -1,6 +1,6 @@
 /* util.c -- misc utility functions
  *
- * Copyright (C) 2021 fgsfds, Andy Nguyen
+ * Copyright (C) 2026 givethesourceplox, fgsfds, Andy Nguyen
  *
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
@@ -12,15 +12,37 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "util.h"
 #include "config.h"
+
+static pthread_mutex_t s_log_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t s_main_thread;
+static int s_main_thread_set = 0;
+static int s_compat_delay_ms = 2;
+
+void debugPrintf_setMainThread(void)
+{
+  s_main_thread = pthread_self();
+  s_main_thread_set = 1;
+}
+
+void debugPrintf_setCompatDelayMs(int ms)
+{
+  if (ms < 0)
+    ms = 0;
+  if (ms > 20)
+    ms = 20;
+  s_compat_delay_ms = ms;
+}
 
 #ifdef DEBUG_LOG
 
 static int s_nxlinkSock = -1;
 
-static void initNxLink(void) {
+static void initNxLink(void)
+{
   if (R_FAILED(socketInitializeDefault()))
     return;
   s_nxlinkSock = nxlinkStdio();
@@ -28,39 +50,65 @@ static void initNxLink(void) {
     socketExit();
 }
 
-static void deinitNxLink(void) {
-  if (s_nxlinkSock >= 0) {
+static void deinitNxLink(void)
+{
+  if (s_nxlinkSock >= 0)
+  {
     close(s_nxlinkSock);
     socketExit();
     s_nxlinkSock = -1;
   }
 }
 
-void userAppInit(void) {
+void userAppInit(void)
+{
   initNxLink();
 }
 
-void userAppExit(void) {
+void userAppExit(void)
+{
   deinitNxLink();
 }
 
 #endif
 
-int debugPrintf(char *text, ...) {
+int debugPrintf(const char *text, ...)
+{
 #ifdef DEBUG_LOG
   va_list list;
+  const char *tag = "?";
+  if (s_main_thread_set)
+    tag = pthread_equal(pthread_self(), s_main_thread) ? "M" : "G";
 
+  pthread_mutex_lock(&s_log_mutex);
+
+#if DEBUG_FILE_LOG
   FILE *f = fopen(LOG_NAME, "a");
-  if (f) {
+  if (f)
+  {
+    fprintf(f, "[%s] ", tag);
     va_start(list, text);
     vfprintf(f, text, list);
     va_end(list);
     fclose(f);
   }
+#endif
 
+  printf("[%s] ", tag);
   va_start(list, text);
   vprintf(text, list);
   va_end(list);
+
+#if !DEBUG_FILE_LOG
+  // DEBUG_FILE_LOG=1 keeps this mutex held much longer because every log line
+  // does synchronous file I/O. That extra serialization is currently masking a
+  // startup/gameplay race in the port, so emulate a small portion of that
+  // delay without actually writing debug.log.
+  if (s_compat_delay_ms > 0)
+    svcSleepThread((int64_t)s_compat_delay_ms * 1000000LL);
+#endif
+
+  pthread_mutex_unlock(&s_log_mutex);
 #endif
   return 0;
 }

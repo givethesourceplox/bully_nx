@@ -1,0 +1,7 @@
+screen_width -1
+screen_height -1
+clarity 0
+shadows 1
+trilinear_filter 1
+disable_mipmaps 0
+timing_workaround_ms 0
