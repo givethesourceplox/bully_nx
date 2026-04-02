@@ -1,6 +1,6 @@
 /* so_util.h -- utils to load and hook .so modules
  *
- * Copyright (C) 2021 Andy Nguyen, fgsfds
+ * Copyright (C) 2026 givethesourceplox, Andy Nguyen, fgsfds
  *
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
@@ -13,17 +13,20 @@
 
 #define ALIGN_MEM(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
-typedef struct {
+typedef struct
+{
   char *symbol;
   uintptr_t func;
 } DynLibFunction;
 
 extern void *text_base, *data_base;
+extern void *text_virtbase;
 extern size_t text_size, data_size;
 
 void hook_thumb(uintptr_t addr, uintptr_t dst);
 void hook_arm(uintptr_t addr, uintptr_t dst);
 void hook_arm64(uintptr_t addr, uintptr_t dst);
+void hook_addr_ret0(uintptr_t addr);
 
 void so_flush_caches(void);
 void so_free_temp(void);
