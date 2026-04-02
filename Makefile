@@ -38,7 +38,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
-APP_TITLE	:=	Max Payne
+APP_TITLE	:=	Bully
+APP_VERSION :=  0.0.1
+APP_AUTHOR  :=  givethesourceplox
 BUILD		:=	build
 SOURCES		:=	source source/hooks
 DATA		:=	data
@@ -60,7 +62,44 @@ CXXFLAGS	:= $(CFLAGS)
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lopenal -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lnx -lm
+# Prefer a mounted custom Mesa build when present.
+# Example:
+#   docker run ... -v /path/to/mesa/build:/mesa-new ...
+CUSTOM_MESA_ROOT ?=
+ifeq ($(strip $(CUSTOM_MESA_ROOT)),)
+ifneq ($(wildcard /mesa-new/src/egl/libEGL.a),)
+CUSTOM_MESA_ROOT := /mesa-new
+else ifneq ($(wildcard /mesa-new/build/src/egl/libEGL.a),)
+CUSTOM_MESA_ROOT := /mesa-new/build
+endif
+endif
+
+CUSTOM_MESA_EGL := $(CUSTOM_MESA_ROOT)/src/egl/libEGL.a
+CUSTOM_MESA_GLES := $(firstword $(wildcard $(CUSTOM_MESA_ROOT)/src/mapi/es2api/libGLESv2*.a))
+CUSTOM_MESA_GLAPI := $(CUSTOM_MESA_ROOT)/src/mapi/shared-glapi/libglapi.a
+CUSTOM_MESA_WINSYS := $(firstword $(wildcard $(CUSTOM_MESA_ROOT)/src/gallium/winsys/nouveau/switch/libnouveauwinsys.a))
+CUSTOM_MESA_NOUVEAU := $(firstword $(wildcard $(CUSTOM_MESA_ROOT)/src/gallium/drivers/nouveau/libnouveau.a))
+CUSTOM_MESA_DRM := $(CUSTOM_MESA_ROOT)/libdrm_nouveau/lib/libdrm_nouveau.a
+CUSTOM_MESA_REQUIRED := $(CUSTOM_MESA_EGL) $(CUSTOM_MESA_GLES) $(CUSTOM_MESA_GLAPI) $(CUSTOM_MESA_DRM)
+
+USE_CUSTOM_MESA := 0
+ifneq ($(strip $(CUSTOM_MESA_ROOT)),)
+ifeq ($(strip $(filter-out $(wildcard $(CUSTOM_MESA_REQUIRED)),$(CUSTOM_MESA_REQUIRED))),)
+USE_CUSTOM_MESA := 1
+$(info Using custom Mesa archives from $(CUSTOM_MESA_ROOT))
+else
+$(warning Custom Mesa requested at $(CUSTOM_MESA_ROOT) but required archives are missing; falling back to devkitPro portlibs Mesa)
+endif
+endif
+
+ifeq ($(USE_CUSTOM_MESA),1)
+MESA_LIBS := $(CUSTOM_MESA_EGL) $(CUSTOM_MESA_GLES) $(CUSTOM_MESA_GLAPI) \
+             $(CUSTOM_MESA_WINSYS) $(CUSTOM_MESA_NOUVEAU) $(CUSTOM_MESA_DRM)
+else
+MESA_LIBS := -lEGL -lGLESv2 -lglapi -ldrm_nouveau
+endif
+
+LIBS	:= -lopenal -lSDL2 $(MESA_LIBS) -lminizip -lz -lnx -lm -lzstd
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

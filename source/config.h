@@ -1,6 +1,6 @@
 /* config.h -- global configuration and config file handling
  *
- * Copyright (C) 2021 fgsfds, Andy Nguyen
+ * Copyright (C) 2021 fgsfds, Andy Nguyen, givethesourceplox
  *
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
@@ -9,14 +9,18 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-// should be enough for pretend purposes
-#define MEMORY_MB 512
+// The 64-bit Bully runtime streams much heavier mesh/audio/script data than the
+// original Vita-era ports this loader started from. Give newlib a larger heap
+// budget so medium-sized refcounted mesh buffers don't fail late during area
+// transitions and cutscene setup.
+#define MEMORY_MB 1024
 
-#define SO_NAME "libMaxPayne.so"
+#define SO_NAME "libBully.so"
 #define CONFIG_NAME "config.txt"
 #define LOG_NAME "debug.log"
 
-// #define DEBUG_LOG 1
+#define DEBUG_LOG 1
+#define DEBUG_FILE_LOG 0
 
 // actual screen size
 extern int screen_width;

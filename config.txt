@@ -1,0 +1,12 @@
+screen_width 960
+screen_height 540
+use_bloom 0
+trilinear_filter 1
+disable_mipmaps 0
+language 0
+crouch_toggle 1
+character_shadows 1
+drop_highest_lod 0
+show_weapon_menu 0
+decal_limit 0.5
+debris_limit 1

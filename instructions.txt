@@ -1,0 +1,59 @@
+Bully NX Port
+
+Credits
+- AArch64 Bully porting work in this repo by givethesourceplox.
+- Thanks to TheOfficialFloW and PS Vita port contributors for the method and prior groundwork.
+
+Introduction
+This port runs the Android 64-bit version of Bully: Anniversary Edition on Nintendo Switch by loading the original game data and native library from an official Android release.
+
+No original game assets are included with this port.
+You must use officially obtained assets from your own copy of Bully: Anniversary Edition APK v1.4.311.
+
+Required Files
+From an officially obtained Bully: Anniversary Edition APK v1.4.311 with arm64-v8a libraries, extract:
+- assets/ folder
+- lib/arm64-v8a/libc++_shared.so
+- lib/arm64-v8a/libGame.so
+
+Installation
+1. Create this folder on your SD card:
+   sdmc:/switch/bully/
+
+2. Copy the port files into that folder:
+   - the .nro build from this project
+   - any optional config.txt you want to ship with it
+
+3. Copy the full assets folder from the APK to:
+   sdmc:/switch/bully/assets/
+
+4. Copy libc++_shared.so from the APK to:
+   sdmc:/switch/bully/libc++_shared.so
+
+5. Copy libGame.so from the APK to this path and rename it:
+   source: lib/arm64-v8a/libGame.so
+   destination: sdmc:/switch/bully/libBully.so
+
+Expected Layout
+sdmc:/switch/bully/
+- your_port.nro
+- libc++_shared.so
+- libBully.so
+- config.txt
+- assets/
+  - data_0.zip
+  - data_1.zip
+  - data_2.zip
+  - data_3.zip
+  - data_4.zip
+  - ...
+
+Notes
+- The game directory must contain assets/data_0.zip or the port will fail the startup data check.
+- savegames/ is created automatically on first run.
+- This port is intended for the 64-bit Android build. Use the official Bully: Anniversary Edition APK v1.4.311 with arm64-v8a content.
+- Do not distribute the extracted APK contents with the port.
+
+Legal
+Use only assets and binaries from an officially obtained copy of the game.
+This port should be distributed without proprietary game files.
