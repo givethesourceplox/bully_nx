@@ -1043,7 +1043,13 @@ static void jni_gamepad_sync_lib_state(int connected, u64 buttons)
     g_jni_lib_gamepad_state[g_jni_lib_gamepad_buttons[i].lib_index] = value;
   }
 
-  g_jni_lib_gamepad_state[12] = 0;
+  /*
+   * Physical L3 is exposed as game button/state 12 for the legacy look-back
+   * action. Clearing that slot every frame turns a held L3 into a momentary
+   * press even though the callback and button-mask paths remain active. Let
+   * those paths retain state 12 until the matching button-up event instead.
+   * Keep state 13 unchanged here; R3 was outside the hardware-tested fix.
+   */
   g_jni_lib_gamepad_state[13] = 0;
 
   prev_buttons = connected ? buttons : 0;
