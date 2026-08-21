@@ -4,4 +4,5 @@ clarity 0
 shadows 1
 trilinear_filter 1
 disable_mipmaps 0
+nintendo_button_glyphs 1
 timing_workaround_ms 0

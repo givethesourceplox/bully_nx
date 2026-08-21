@@ -89,6 +89,7 @@ screen_height 540
 clarity 0
 shadows 1
 trilinear_filter 0
+nintendo_button_glyphs 1
 timing_workaround_ms 0
 ```
 
@@ -104,6 +105,16 @@ timing_workaround_ms 0
 - `1` = Low
 - `2` = Medium
 - `3` = High
+
+`nintendo_button_glyphs` controls the face-button tips shown by the game:
+
+- `1` = Nintendo A/B/X/Y layout (default)
+- `0` = original Xbox A/B/X/Y layout
+
+This option only remaps lookups between the four existing textures in the
+user-provided asset archive. It does not modify or redistribute game files.
+Restore an externally pre-swapped `data_4.zip.idx` before enabling this option
+to avoid applying the A/B and X/Y swap twice.
 
 `timing_workaround_ms` controls the current compatibility timing workaround used by the port on some consoles.
 
@@ -159,7 +170,6 @@ Known issues / unfinished parts:
 - this is still a work-in-progress port
 - there are still some temporary hacks/workarounds in the runtime that should be replaced with cleaner fixes
 - more cleanup and stabilization is still needed overall
-- Xbox layout on button tips
 
 ## Legal
 

@@ -20,6 +20,7 @@
   CONFIG_VAR_INT(shadows);                                                     \
   CONFIG_VAR_INT(trilinear_filter);                                            \
   CONFIG_VAR_INT(disable_mipmaps);                                             \
+  CONFIG_VAR_INT(nintendo_button_glyphs);                                      \
   CONFIG_VAR_INT(timing_workaround_ms);                                        \
   CONFIG_VAR_STR(mod_file);
 
@@ -61,6 +62,7 @@ int read_config(const char *file) {
   config.shadows = 0; // Low
   config.trilinear_filter = 0;
   config.disable_mipmaps = 0;
+  config.nintendo_button_glyphs = 1;
   config.timing_workaround_ms = 0; // auto
 
   FILE *f = fopen(file, "r");
