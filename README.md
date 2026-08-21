@@ -84,14 +84,23 @@ If it does not exist, the port creates one with default values on first boot.
 Examples:
 
 ```txt
-screen_width 960
-screen_height 540
-clarity 0
-shadows 1
-trilinear_filter 0
+screen_width -1
+screen_height -1
+clarity 1
+shadows 0
+trilinear_filter 1
 nintendo_button_glyphs 1
 timing_workaround_ms 0
 ```
+
+When both screen dimensions are `-1`, the port selects a conservative profile
+at startup:
+
+- handheld/tabletop = `1024x576`
+- docked/TV mode = `1280x720`
+
+Restart the port after docking or undocking to apply the other profile. Fixed
+positive dimensions remain supported and bypass automatic selection.
 
 `clarity` maps to the native in-game display effects level:
 
