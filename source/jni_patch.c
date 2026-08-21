@@ -182,6 +182,30 @@ static float jni_gamepad_deadzone(float val)
   return val;
 }
 
+static float jni_left_stick_axis(float val)
+{
+  const float android_deadzone = 0.22f;
+  const float android_range = 1.0f - android_deadzone;
+  const float outer_margin = 1.03f;
+  float magnitude;
+
+  val = jni_gamepad_deadzone(val);
+  if (val == 0.0f)
+    return 0.0f;
+
+  /*
+   * Bully applies its own 22% per-axis deadzone after the JNI callback. Feed
+   * the left stick through that active range so the game receives the full
+   * Switch axis again. A small tested outer margin avoids cardinal directions
+   * dropping just below the run threshold because of normal stick sampling.
+   * Keep the right stick untouched so camera behavior remains native.
+   */
+  magnitude = android_deadzone + android_range * outer_margin * fabsf(val);
+  if (magnitude > 1.0f)
+    magnitude = 1.0f;
+  return val < 0.0f ? -magnitude : magnitude;
+}
+
 static void jni_gamepad_update(void)
 {
   if (!g_jni_pad_initialized)
@@ -226,8 +250,8 @@ static void jni_gamepad_sample(int *connected_out, u64 *buttons_out, float axes_
 
   if (axes_out)
   {
-    axes_out[0] = jni_gamepad_deadzone((float)left.x * scale);
-    axes_out[1] = jni_gamepad_deadzone((float)left.y * -scale);
+    axes_out[0] = jni_left_stick_axis((float)left.x * scale);
+    axes_out[1] = jni_left_stick_axis((float)left.y * -scale);
     axes_out[2] = jni_gamepad_deadzone((float)right.x * scale);
     axes_out[3] = jni_gamepad_deadzone((float)right.y * -scale);
     axes_out[4] = (buttons & HidNpadButton_ZL) ? 1.0f : 0.0f;
@@ -377,8 +401,8 @@ static void sdl_gamepad_sample(int *connected_out, int *buttons_out, float axes_
 
     if (axes_out)
     {
-      axes_out[0] = jni_gamepad_deadzone((float)SDL_GameControllerGetAxis(g_sdl_gamepad, SDL_CONTROLLER_AXIS_LEFTX) * axis_scale);
-      axes_out[1] = jni_gamepad_deadzone((float)-SDL_GameControllerGetAxis(g_sdl_gamepad, SDL_CONTROLLER_AXIS_LEFTY) * axis_scale);
+      axes_out[0] = jni_left_stick_axis((float)SDL_GameControllerGetAxis(g_sdl_gamepad, SDL_CONTROLLER_AXIS_LEFTX) * axis_scale);
+      axes_out[1] = jni_left_stick_axis((float)-SDL_GameControllerGetAxis(g_sdl_gamepad, SDL_CONTROLLER_AXIS_LEFTY) * axis_scale);
       axes_out[2] = jni_gamepad_deadzone((float)SDL_GameControllerGetAxis(g_sdl_gamepad, SDL_CONTROLLER_AXIS_RIGHTX) * axis_scale);
       axes_out[3] = jni_gamepad_deadzone((float)-SDL_GameControllerGetAxis(g_sdl_gamepad, SDL_CONTROLLER_AXIS_RIGHTY) * axis_scale);
       axes_out[4] = (float)SDL_GameControllerGetAxis(g_sdl_gamepad, SDL_CONTROLLER_AXIS_TRIGGERLEFT) / 32767.0f;
@@ -1019,7 +1043,13 @@ static void jni_gamepad_sync_lib_state(int connected, u64 buttons)
     g_jni_lib_gamepad_state[g_jni_lib_gamepad_buttons[i].lib_index] = value;
   }
 
-  g_jni_lib_gamepad_state[12] = 0;
+  /*
+   * Physical L3 is exposed as game button/state 12 for the legacy look-back
+   * action. Clearing that slot every frame turns a held L3 into a momentary
+   * press even though the callback and button-mask paths remain active. Let
+   * those paths retain state 12 until the matching button-up event instead.
+   * Keep state 13 unchanged here; R3 was outside the hardware-tested fix.
+   */
   g_jni_lib_gamepad_state[13] = 0;
 
   prev_buttons = connected ? buttons : 0;

@@ -84,13 +84,23 @@ If it does not exist, the port creates one with default values on first boot.
 Examples:
 
 ```txt
-screen_width 960
-screen_height 540
-clarity 0
-shadows 1
-trilinear_filter 0
+screen_width -1
+screen_height -1
+clarity 1
+shadows 0
+trilinear_filter 1
+nintendo_button_glyphs 1
 timing_workaround_ms 0
 ```
+
+When both screen dimensions are `-1`, the port selects a conservative profile
+at startup:
+
+- handheld/tabletop = `1024x576`
+- docked/TV mode = `1280x720`
+
+Restart the port after docking or undocking to apply the other profile. Fixed
+positive dimensions remain supported and bypass automatic selection.
 
 `clarity` maps to the native in-game display effects level:
 
@@ -104,6 +114,16 @@ timing_workaround_ms 0
 - `1` = Low
 - `2` = Medium
 - `3` = High
+
+`nintendo_button_glyphs` controls the face-button tips shown by the game:
+
+- `1` = Nintendo A/B/X/Y layout (default)
+- `0` = original Xbox A/B/X/Y layout
+
+This option only remaps lookups between the four existing textures in the
+user-provided asset archive. It does not modify or redistribute game files.
+Restore an externally pre-swapped `data_4.zip.idx` before enabling this option
+to avoid applying the A/B and X/Y swap twice.
 
 `timing_workaround_ms` controls the current compatibility timing workaround used by the port on some consoles.
 
@@ -159,7 +179,6 @@ Known issues / unfinished parts:
 - this is still a work-in-progress port
 - there are still some temporary hacks/workarounds in the runtime that should be replaced with cleaner fixes
 - more cleanup and stabilization is still needed overall
-- Xbox layout on button tips
 
 ## Legal
 

@@ -1,7 +1,8 @@
 screen_width -1
 screen_height -1
-clarity 0
-shadows 1
+clarity 1
+shadows 0
 trilinear_filter 1
 disable_mipmaps 0
+nintendo_button_glyphs 1
 timing_workaround_ms 0

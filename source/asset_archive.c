@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "config.h"
 #include "util.h"
 
 #define ASSET_ROOT "assets/"
@@ -274,6 +275,32 @@ static const ZipIndexEntry *find_zip_entry(const char *normalized_path)
   return NULL;
 }
 
+static const char *remap_nintendo_button_glyph(const char *normalized_path)
+{
+  const char *name = normalized_path;
+  int has_bully_prefix = 0;
+
+  if (!config.nintendo_button_glyphs)
+    return normalized_path;
+
+  if (strncmp(name, "bully/", 6) == 0)
+  {
+    has_bully_prefix = 1;
+    name += 6;
+  }
+
+  if (strcmp(name, "hud_button_a.tex") == 0)
+    return has_bully_prefix ? "bully/hud_button_b.tex" : "hud_button_b.tex";
+  if (strcmp(name, "hud_button_b.tex") == 0)
+    return has_bully_prefix ? "bully/hud_button_a.tex" : "hud_button_a.tex";
+  if (strcmp(name, "hud_button_x.tex") == 0)
+    return has_bully_prefix ? "bully/hud_button_y.tex" : "hud_button_y.tex";
+  if (strcmp(name, "hud_button_y.tex") == 0)
+    return has_bully_prefix ? "bully/hud_button_x.tex" : "hud_button_x.tex";
+
+  return normalized_path;
+}
+
 static AssetHandle *asset_handle_from_file(FILE *fp)
 {
   AssetHandle *handle;
@@ -434,7 +461,8 @@ static AssetHandle *open_loose_asset(const char *path, const char *normalized_pa
 
 static AssetHandle *open_zip_asset(const char *normalized_path)
 {
-  const ZipIndexEntry *entry = find_zip_entry(normalized_path);
+  const char *lookup_path = remap_nintendo_button_glyph(normalized_path);
+  const ZipIndexEntry *entry = find_zip_entry(lookup_path);
   if (!entry)
     return NULL;
 

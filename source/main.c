@@ -100,18 +100,20 @@ static void set_screen_size(int w, int h)
 {
   if (w <= 0 || h <= 0 || w > 1920 || h > 1080)
   {
-    // auto; prefer 720p on both handheld and docked.
-    // Full 1080p docked works, but it drives GPU load unnecessarily high for
-    // this Android wrapper and leaves little headroom for the heavier scenes.
+    /*
+     * Select a conservative render size once at startup. The Android wrapper
+     * benefits more from streaming/GPU headroom than from a 1080p surface.
+     * Restart the port after changing operation mode to select the other size.
+     */
     if (appletGetOperationMode() == AppletOperationMode_Console)
     {
-      screen_width = 960;
-      screen_height = 540;
+      screen_width = 1280;
+      screen_height = 720;
     }
     else
     {
-      screen_width = 960;
-      screen_height = 540;
+      screen_width = 1024;
+      screen_height = 576;
     }
   }
   else

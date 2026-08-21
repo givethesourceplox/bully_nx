@@ -33,6 +33,7 @@ typedef struct {
   int shadows;
   int trilinear_filter;
   int disable_mipmaps;
+  int nintendo_button_glyphs;
   int timing_workaround_ms;
   char mod_file[0x100];
 } Config;
